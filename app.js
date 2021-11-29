@@ -12,7 +12,7 @@ class MessageService {
 
     async create(data) {
         const message = {
-            id: this.message.length,
+            id: this.messages.length,
             text: data.text
         };
         this.messages.push(message);
@@ -21,4 +21,24 @@ class MessageService {
 }
 
 app.use('messages', new MessageService());
+
+app.service('messages').on('created', (message) => {
+    console.log('A new message has been created', message)
+})
+
+const main = async () => {
+    await app.service('messages').create({
+        text: 'Hello Feathers'
+    });
+
+    await app.service('messages').create({
+        text: 'Hello Again'
+    });
+
+    const messages = await app.service('messages').find();
+    console.log('All Messages', messages);
+}
+
+main();
+
 
