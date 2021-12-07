@@ -27,28 +27,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
 app.use(express.static(__dirname));
 
-app.configure(express.rest)
-app.configure(socketio)
+app.configure(express.rest())
+app.configure(socketio())
 
-app.use('messages', new MessageService());
+app.use('/messages', new MessageService());
 
-app.service('messages').on('created', (message) => {
-    console.log('A new message has been created', message)
+app.use(express.errorHandler());
+
+app.on('connection', connection => {
+    app.channel('everybody').join(connection);
+});
+
+app.publish(() => app.channel('everybody'));
+
+app.listen(3030).on('listening', () => {
+    console.log(`Feathers server listening on localhost:3030`);
 })
 
-const main = async () => {
-    await app.service('messages').create({
-        text: 'Hello Feathers'
-    });
-
-    await app.service('messages').create({
-        text: 'Hello Again'
-    });
-
-    const messages = await app.service('messages').find();
-    console.log('All Messages', messages);
-}
-
-main();
-
-
+app.service('messages').create({
+    text: 'Hello world from the server!'
+})
